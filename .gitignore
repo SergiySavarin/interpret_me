@@ -1,0 +1,10 @@
+.bin
+.env
+.lib
+.include
+*.pyc
+lib
+include
+.Python
+bin
+
