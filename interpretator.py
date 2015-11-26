@@ -67,9 +67,10 @@ def standart_env():
     env = Env()
     env.update(vars(math))
     env.update({
-        '-':operator.sub, '*':operator.mul,
+        '-':operator.sub,
         '/':operator.div, '=':operator.eq,
-        '+':          lambda *x: sum(reversed(x[1:])),
+        '+':          lambda *x: sum(reversed(x)),
+        '*':          lambda *x: reduce(operator.mul, x, 1),
         'append':     operator.add,
         'head':       lambda x: '(' + str(x[0]) + ')',
         'tail':       lambda x: '(' + ','.join(map(str, x[1:])) + ')',
@@ -128,7 +129,9 @@ def eval(x, env=global_env):
                                 else None
         return {x[i]:out_of_range(i, x) for i in range(0, len(x), 3)}
     elif isinstance(x[0], Number):
-        return x
+        (_, exp) = x
+        return [exp for exp in x if not isinstance(exp, List)] + \
+               [eval(exp, env) for exp in x if isinstance(exp, List)]
     elif x[0] == 'var':
         (_, var, exp) = x
         env[var] = eval(exp, env)
