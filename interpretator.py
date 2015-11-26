@@ -129,7 +129,7 @@ def eval(x, env=global_env):
                                 else None
         return {x[i]:out_of_range(i, x) for i in range(0, len(x), 3)}
     elif isinstance(x[0], Number):
-        (_, exp) = x
+        # (_, exp) = x
         return [exp for exp in x if not isinstance(exp, List)] + \
                [eval(exp, env) for exp in x if isinstance(exp, List)]
     elif x[0] == 'var':
@@ -145,13 +145,17 @@ if __name__ == '__main__':
         try:
             with open(argv[1], 'r') as f:
                 for line in f:
-                    line = line.rstrip()
-                    print line
-                    try:
-                        if eval(parse(line)) != None:
-                            print eval(parse(line))
-                    except SyntaxError as err:
-                        print err
+                    if line == '\n':
+                        continue
+                    else:
+                        line = line.rstrip()
+                        print 'Line from executed file: ', line
+                        try:
+                            if eval(parse(line)) != None:
+                                print 'Execution result:        ', \
+                                                        eval(parse(line))
+                        except SyntaxError as err:
+                            print err
                 f.close()
         except SystemError as err:
             print err
