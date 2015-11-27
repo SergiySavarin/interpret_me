@@ -153,22 +153,61 @@ def eval(x, env=global_env):
         args = [eval(exp, env) for exp in x[1:]]
         return proc(*args)
 
+def check_syntax(file_name):
+    '''Check file syntax errors.'''
+    brackets = ['(', ')']
+    operators = [',', '+', '-', '*', '/', 'var', 'tail', 'head']
+    values = (range(48, 58) + range(65, 91) + \
+              range(97, 123) + range(0, 33))
+
+    def check_char(line, counter):
+        '''Check chars in line and print line with error if it's.'''
+        for char in line:
+            if char in brackets or \
+                char in operators or \
+                ord(char) in values:
+                continue
+            else:
+                print line
+                print 'Unexpected character: %s in line: %s' % (char,
+                                                                counter)
+                exit()
+
+    def check_bracket_count(line, counter):
+        '''Check brackets quantity.'''
+        if line.count('(') > line.count(')'):
+            print line
+            print 'Miss closing braket `)` in line: %s' % counter
+            exit()
+        elif line.count('(') < line.count(')'):
+            print line
+            print 'Miss opening braket `(` in line: %s' % counter
+            exit()
+
+    with open(file_name, 'r') as f:
+        counter = 0
+        for line in f:
+            line.rstrip()
+            counter += 1
+            check_char(line, counter)
+            check_bracket_count(line, counter)
+    return True
+
+
 if __name__ == '__main__':
     if argv[1]:
-        try:
-            with open(argv[1], 'r') as f:
-                for line in f:
-                    if line == '\n':
-                        continue
-                    else:
-                        line = line.rstrip()
-                        print 'Line from executed file: ', line
-                        try:
-                            if eval(parse(line)) != None:
-                                print 'Execution result:        ', \
-                                                        eval(parse(line))
-                        except SyntaxError as err:
-                            print err
-                f.close()
-        except SystemError as err:
-            print err
+        file_name = argv[1]
+    if not check_syntax(file_name):
+        check_syntax(file_name)
+    try:
+        with open(file_name, 'r') as f:
+            for line in f:
+                if line == '\n':
+                    continue
+                else:
+                    line = line.rstrip()
+                    print 'Line from executed file: ', line
+                    print 'Execution result:        ', eval(parse(line))
+            f.close()
+    except IOError as err:
+        print err
