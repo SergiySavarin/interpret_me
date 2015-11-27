@@ -17,9 +17,9 @@ from sys import argv
 import math
 import operator
 
-Symbol = str
-List = list
-Number = (int, float)
+SYMBOL = str
+LIST = list
+NUMBER = (int, float)
 
 def parse(program):
     '''Read a scheme expression from a string.'''
@@ -41,7 +41,6 @@ def read_from_tokens(tokens):
         lst = []
         while tokens[0] != ')':
             lst.append(read_from_tokens(tokens))
-            # print read_from_tokens(tokens)
         tokens.pop(0)
 
         return lst
@@ -82,8 +81,8 @@ def standart_env():
         'min':        min,
         'not':        operator.not_,
         'null?':      lambda x: x == [],
-        'number?':    lambda x: isinstance(x, Number),
-        'symbol':     lambda x: isinstance(x, Symbol)
+        'number?':    lambda x: isinstance(x, NUMBER),
+        'symbol':     lambda x: isinstance(x, SYMBOL)
         })
     return env
 
@@ -117,21 +116,35 @@ def langstr(exp):
     else:
         return str(exp)
 
+def dict_exp(x, env=global_env):
+    '''Convert expressions with ',' - comma in dict.'''
+    i = 0
+    dct = {}
+    while i < len(x):
+        if len(x) > (i + 1) and x[i+1] != ',':
+            dct[eval(x[i], env)] = eval(x[i+1], env)
+            i += 3
+        elif x[i] != x[-1] and x[i+1] == ',':
+            dct[eval(x[i], env)] = None
+            i += 2
+        else:
+            dct[eval(x[i], env)] = None
+            i += 1
+    return dct
+
+
 def eval(x, env=global_env):
     '''Evaluate an expression in an environment.'''
-    if isinstance(x, Symbol):
+    if isinstance(x, SYMBOL):
         return env.find(x)[x]
-    elif not isinstance(x, List):
+    elif not isinstance(x, LIST):
         return x
     elif ',' in x:
-        out_of_range = lambda i, x: x[i + 1] \
-                                if len(x) > (i + 1) and x[i + 1] != ',' \
-                                else None
-        return {x[i]:out_of_range(i, x) for i in range(0, len(x), 3)}
-    elif isinstance(x[0], Number):
-        # (_, exp) = x
-        return [exp for exp in x if not isinstance(exp, List)] + \
-               [eval(exp, env) for exp in x if isinstance(exp, List)]
+        return dict_exp(x)
+    elif isinstance(x[0], NUMBER):
+        # create list from nubers in 'x' and adding
+        # results of evaluating outher list with operators
+        return [eval(exp, env) for exp in x]
     elif x[0] == 'var':
         (_, var, exp) = x
         env[var] = eval(exp, env)
